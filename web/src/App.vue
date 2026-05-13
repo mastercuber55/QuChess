@@ -24,8 +24,11 @@ import Navbar from './components/Navbar.vue'
 import { useBoard } from "@/composables/useBoard.js"
 import PromotionMenu from './components/PromotionMenu.vue'
 import { Input } from './components/ui/input'
+import ChatWindow from "@/components/ChatWindow.vue"
+import { Toaster } from './components/ui/sonner'
 
 import { io } from "socket.io-client"
+import { toast } from 'vue-sonner'
 
 const name = prompt("Enter your name")
 
@@ -35,7 +38,7 @@ const { chess, undoMove } = useBoard()
 socket.emit("match-create")
 
 socket.on("match-found", (name) => {
-  alert(`Match with ${name}`)
+  toast.success("Match found", { description: `Match with ${name}`})
 })
 
 </script>
@@ -45,6 +48,7 @@ socket.on("match-found", (name) => {
   <SidebarProvider>
     <AppSidebar />
     <SidebarInset>
+      <Toaster theme="dark" position="top-center" />
       <PromotionMenu />
       <div class="flex flex-col flex-1 h-full">
         <Navbar/>
@@ -56,23 +60,7 @@ socket.on("match-found", (name) => {
               </div>
             </Card>
             <Card class="flex-1 p-4">
-              <Card variant="outline" class="p-4 flex-1">
-
-                <div class="border-b pb-3">
-                  <h2 class="text-lg font-semibold tracking-tight text-center">
-                    Message ・ Dwip
-                  </h2>
-                </div>
-
-                <div class="flex-1">
-                  <!-- chat messages -->
-                </div>
-
-                <div class="flex gap-2 mt-3">
-                  <Input />
-                  <Button>></Button>
-                </div>
-              </Card>
+              <ChatWindow/>
               <div class="flex flex-row justify-between gap-2">
 
                 <Button class="flex-1" variant="secondary">
