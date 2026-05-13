@@ -9,12 +9,11 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./src/*"
       ]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/composables/usePromotionMenu.js"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/composables/usePromotionMenu.js", "src/composables/useBoard.js", "src/main.js"]
 }

@@ -5,7 +5,8 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
-    "baseUrl": ".",
+    "allowJs": true,
+    "checkJs": true,
     "paths": {
       "@/*": ["./src/*"]
     }

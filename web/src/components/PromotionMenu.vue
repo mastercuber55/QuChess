@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup>
 
 import {
     Popover,
@@ -8,8 +8,8 @@ import {
 
 import { Button } from './ui/button/index.js';
 
-import { usePromotionMenu } from "../composables/usePromotionMenu.js"
-import { useBoard } from "../composables/useBoard.js"
+import { usePromotionMenu } from "@/composables/usePromotionMenu.js"
+import { useBoard } from "@/composables/useBoard.js"
 
 const { open, x, y, hidePromotionMenu } = usePromotionMenu()
 const { promote } = useBoard()

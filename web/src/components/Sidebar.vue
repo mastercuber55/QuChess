@@ -1,23 +1,20 @@
 <script setup lang="ts">
 import {
-  Search, Settings, Swords,
-  Trophy,
-  BookOpen,
+  Settings, Swords,
   History,
   Users,
   Tv,
-  LayoutDashboard
+  LayoutDashboard,
+  Castle
 } from 'lucide-vue-next'
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
 } from '@/components/ui/sidebar'
 
 import { Item } from "@/components/ui/item"
@@ -65,8 +62,8 @@ const items = [
     <SidebarHeader>
       <SidebarMenu>
         <SidebarMenuItem>
-          <div class="flex items-center overflow-hidden m-2.5 my-2">
-            <SidebarTrigger />
+          <div class="flex items-center overflow-hidden mx-3 my-2 gap-1">
+           <Castle/>
             <span class="group-data-[state=collapsed]:hidden font-semibold ">
               QuChess
             </span>
