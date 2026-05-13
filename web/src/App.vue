@@ -56,7 +56,7 @@ const { chess, undoMove } = useBoard()
               <ChatWindow/>
               <div class="flex flex-row justify-between gap-2">
 
-                <Button class="flex-1" variant="secondary">
+                <Button @click="() => { undoMove(); undoMove(); }" class="flex-1" variant="secondary">
                   <RotateCcw />
                   Undo
                 </Button>

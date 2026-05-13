@@ -4,11 +4,13 @@ import { Chess } from 'chess.js'
 import { usePromotionMenu } from "./usePromotionMenu.js"
 import { useSocket } from "./useSocket.js"
 import { toast } from "vue-sonner"
+import { getBestMove } from "./useStockfish.js"
 
 const pendingMove = ref(null)
 const { showPromotionMenu } = usePromotionMenu()
 
 let board = null
+let stockfish = null
 let playerColor = null
 
 const chess = new Chess()
@@ -35,17 +37,28 @@ export function useBoard() {
             onSnapbackEnd: highlights.removeAll,
             onSnapEnd: () => board.position(chess.fen()),
             position: 'start',
-            pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+            pieceTheme: '/pieces/{piece}.png'
         })
 
         window.addEventListener('resize', board.resize)
 
             
         socket.emit("match-create")
+        setTimeout(() => {
+            if(playerColor) return
+
+            playerColor = "white"
+            stockfish = true
+            socket.disconnect()
+            console.log("Against stockfish lil bro")
+            board.position("start")
+            chess.reset()
+        }, 10000) // In case that no match is found
     })
 
     onUnmounted(() => {
         window.removeEventListener('resize', board?.resize)
+        socket.disconnect()
     })
 
     socket.on("match-move", (move) => {
@@ -57,6 +70,8 @@ export function useBoard() {
         toast.success("Match found", { description: `Match with ${opponent}・You are ${color}!`})
         board.orientation(color)
         playerColor = color
+        board.position("start")
+        chess.reset()
     })
 
     function isPromotion(source, target) {
@@ -112,6 +127,23 @@ export function useBoard() {
             socket.emit("match-move", { from: source, to: target })
             chess.move({ from: source, to: target })
         }
+
+        if(stockfish)
+            setTimeout(makeStockfishMove, 100)
+    }
+
+    async function makeStockfishMove() {
+        const move = await getBestMove(chess.fen(), 1)
+
+        console.log(move)
+
+        chess.move({
+            from: move.slice(0, 2),
+            to: move.slice(2, 4),
+            promotion: move[4] || "q"
+        })
+
+        board.position(chess.fen())
     }
 
     function onDragStart(source, piece, position, orientation) {
