@@ -6,8 +6,6 @@ const y = ref(0)
 
 export function usePromotionMenu() {
 
-    let promote = null
-
     function showPromotionMenu(data) {
         x.value = data.x
         y.value = data.y

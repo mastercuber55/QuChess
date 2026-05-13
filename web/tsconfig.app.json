@@ -1,6 +1,8 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
   "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "types": ["vite/client"],
 
@@ -15,5 +17,5 @@
       ]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/composables/usePromotionMenu.js", "src/composables/useBoard.js", "src/main.js"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/composables/usePromotionMenu.js", "src/composables/useBoard.js", "src/main.js", "src/composables/useSocket.js"]
 }

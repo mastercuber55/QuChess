@@ -21,25 +21,18 @@ import {
 
 import "@chrisoakman/chessboardjs/dist/chessboard-1.0.0.min.css"
 import Navbar from './components/Navbar.vue'
-import { useBoard } from "@/composables/useBoard.js"
+import { useBoard } from "@/composables/useBoard"
 import PromotionMenu from './components/PromotionMenu.vue'
 import { Input } from './components/ui/input'
 import ChatWindow from "@/components/ChatWindow.vue"
 import { Toaster } from './components/ui/sonner'
+import { useSocket } from "@/composables/useSocket"
 
-import { io } from "socket.io-client"
-import { toast } from 'vue-sonner'
-
-const name = prompt("Enter your name")
-
-const socket = io(import.meta.env.DEV ? "http://localhost:8080" : undefined, { auth: { name } })
+let name = sessionStorage.getItem('name');
+while (!name) name = prompt("What is your name??")
+sessionStorage.setItem('name', name)
+const socket = useSocket(name)
 const { chess, undoMove } = useBoard()
-
-socket.emit("match-create")
-
-socket.on("match-found", (name) => {
-  toast.success("Match found", { description: `Match with ${name}`})
-})
 
 </script>
 

@@ -2,11 +2,14 @@ import $ from "jquery"
 import { onMounted, onUnmounted, ref } from 'vue'
 import { Chess } from 'chess.js'
 import { usePromotionMenu } from "./usePromotionMenu.js"
+import { useSocket } from "./useSocket.js"
+import { toast } from "vue-sonner"
 
 const pendingMove = ref(null)
 const { showPromotionMenu } = usePromotionMenu()
 
 let board = null
+let playerColor = null
 
 const chess = new Chess()
 
@@ -20,10 +23,11 @@ window.jQuery = $
 
 export function useBoard() {
 
+    const socket = useSocket(null)
 
     onMounted(async () => {
         await import("@chrisoakman/chessboardjs/dist/chessboard-1.0.0.min.js")
-
+        
         board = Chessboard('board', {
             draggable: true,
             onDrop,
@@ -35,10 +39,24 @@ export function useBoard() {
         })
 
         window.addEventListener('resize', board.resize)
+
+            
+        socket.emit("match-create")
     })
 
     onUnmounted(() => {
         window.removeEventListener('resize', board?.resize)
+    })
+
+    socket.on("match-move", (move) => {
+        chess.move(move)
+        board.position(chess.fen())
+    })
+
+    socket.on("match-found", ({ opponent, color }) => {
+        toast.success("Match found", { description: `Match with ${opponent}・You are ${color}!`})
+        board.orientation(color)
+        playerColor = color
     })
 
     function isPromotion(source, target) {
@@ -56,6 +74,7 @@ export function useBoard() {
     }
 
     function promote(toPiece) {
+        socket.emit("match-move", { ...pendingMove.value, promotion: toPiece })
         chess.move({ ...pendingMove.value, promotion: toPiece })
         pendingMove.value = null
         board.position(chess.fen())
@@ -64,8 +83,16 @@ export function useBoard() {
     function onDrop(source, target, piece, newPos, oldPos, orientation) {
         const moves = chess.moves({ square: source, verbose: true })
         const isValid = moves.some(m => m.to === target)
+
         if (!isValid)
             return 'snapback'
+
+        if (
+            (playerColor === "white" && chess.turn() !== "w") ||
+            (playerColor === "black" && chess.turn() !== "b")
+        ) {
+            return "snapback"
+        }
 
         highlights.removeAll()
 
@@ -82,6 +109,7 @@ export function useBoard() {
             pendingMove.value = { from: source, to: target }
             board.position(chess.fen(), false)
         } else {
+            socket.emit("match-move", { from: source, to: target })
             chess.move({ from: source, to: target })
         }
     }
