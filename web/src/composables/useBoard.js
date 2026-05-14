@@ -64,6 +64,7 @@ export function useBoard() {
             toast.success("Match found", { description: `Match with ${opponent}・You are ${color}!` })
             board.orientation(color)
             playerColor = color
+
             board.position("start")
             chess.reset()
         })

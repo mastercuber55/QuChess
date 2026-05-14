@@ -5,6 +5,8 @@ let socket
 export function useSocket(name) {
     if(!socket) {
         socket = io(import.meta.env.DEV ? `http://${window.location.hostname}:8080` : undefined, { auth: { name } })
+    
+        socket.data = { name }
     }
 
     return socket

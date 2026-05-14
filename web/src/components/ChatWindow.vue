@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
@@ -7,21 +7,42 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from './ui/label';
 import { CardContent, CardAction } from './ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useSocket } from '@/composables/useSocket';
+import { Filter } from 'bad-words'
 
-const opponentName = ref("Dwip")
-const selfName = ref("Cube")
+const filter = new Filter();
 
-const messages = ref([
-    { sender: opponentName.value, content: "Hey" },
-    { sender: selfName.value, content: "Hi man, how are you" },
-    { sender: opponentName.value, content: "I'm good wby" },
-    { sender: selfName.value, content: "Im good too lil vro" },
-    { sender: opponentName.value, content: "I see" },
-    { sender: selfName.value, content: "Hi man, how are you" },
-    { sender: opponentName.value, content: "I'm good wby" },
-    { sender: selfName.value, content: "Im good too lil vro" },
-    { sender: opponentName.value, content: "I see" },
-])
+const opponentName = ref("")
+const selfName = ref("")
+const censor = ref(true)
+const socket = useSocket(null)
+const input = ref("")
+
+const messages = computed(() =>
+  censor.value ? censoredMessages.value : originalMessages.value
+)
+
+const originalMessages = ref([])
+const censoredMessages = ref([])
+
+socket.on("match-found", ({ opponent }) => {
+    opponentName.value = opponent
+    selfName.value = socket.data.name
+})
+
+socket.on("match-message", content => {
+    originalMessages.value.push({ sender: opponentName.value, content })
+    censoredMessages.value.push({ sender: opponentName.value, content: filter.clean(content) })
+})
+
+function sendMessage() {
+    if(input.value.trim() == "") 
+        return
+    socket.emit("match-message", input.value)
+    originalMessages.value.push({ sender: selfName.value, content: input.value })
+    censoredMessages.value.push({ sender: selfName.value, content: filter.clean(input.value) })
+    input.value = null
+}
 </script>
 
 <template>
@@ -34,7 +55,7 @@ const messages = ref([
                 </span>
             </CardTitle>
             <CardAction class="flex gap-1">
-                <Switch id="censor" />
+                <Switch id="censor" v-model="censor" />
                 <Label for="censor">Censor</Label>
             </CardAction>
         </CardHeader>
@@ -44,7 +65,7 @@ const messages = ref([
                 <div class="p-4 space-y-2 flex flex-col">
                     <div v-for="(message, index) in messages" :key="index" class="flex"
                         :class="message.sender === opponentName ? 'justify-start' : 'justify-end'">
-                        <span class="px-3 py-2 rounded-2xl max-w-[70%] break-words" :class="message.sender === opponentName
+                        <span class="px-3 py-2 rounded-2xl max-w-[70%] wrap-break-word" :class="message.sender === opponentName
                             ? 'bg-accent text-foreground'
                             : 'bg-primary text-primary-foreground'">
                             {{ message.content }}
@@ -56,8 +77,8 @@ const messages = ref([
         </CardContent>
 
         <CardFooter class="flex gap-2">
-            <Input />
-            <Button>></Button>
+            <Input v-model="input"/>
+            <Button @click="sendMessage()">></Button>
         </CardFooter>
     </Card>
 </template>
