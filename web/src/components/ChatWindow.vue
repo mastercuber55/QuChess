@@ -7,7 +7,6 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from './ui/label';
 import { CardContent, CardAction } from './ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area'
-import ScrollArea from './ui/scroll-area/ScrollArea.vue';
 
 const opponentName = ref("Dwip")
 const selfName = ref("Cube")
@@ -26,7 +25,7 @@ const messages = ref([
 </script>
 
 <template>
-    <Card variant="outline" class="p-4 flex-1">
+    <Card variant="outline" class="p-4 flex flex-col h-[calc(100dvh-10rem)]">
 
         <CardHeader class="border-b pb-3 flex items-center justify-between">
             <CardTitle>
@@ -40,12 +39,19 @@ const messages = ref([
             </CardAction>
         </CardHeader>
 
-        <CardContent class="flex-1 flex flex-col gap-2 p-4 overflow-y-auto">
-            <ScrollArea>
-                <span v-for="(message, index) in messages" :key="index" class="p-2 px-4 rounded-xl"
-                    :class="message.sender === opponentName ? 'bg-accent self-start' : 'bg-primary text-primary-foreground self-end'">
-                    {{ message.content }}
-                </span>
+        <CardContent class="flex-1 min-h-0 p-0">
+            <ScrollArea class="h-full w-full">
+                <div class="p-4 space-y-2 flex flex-col">
+                    <div v-for="(message, index) in messages" :key="index" class="flex"
+                        :class="message.sender === opponentName ? 'justify-start' : 'justify-end'">
+                        <span class="px-3 py-2 rounded-2xl max-w-[70%] break-words" :class="message.sender === opponentName
+                            ? 'bg-accent text-foreground'
+                            : 'bg-primary text-primary-foreground'">
+                            {{ message.content }}
+                        </span>
+                    </div>
+                </div>
+
             </ScrollArea>
         </CardContent>
 
