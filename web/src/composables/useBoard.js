@@ -29,7 +29,7 @@ export function useBoard() {
 
     onMounted(async () => {
         await import("@chrisoakman/chessboardjs/dist/chessboard-1.0.0.min.js")
-        
+
         board = Chessboard('board', {
             draggable: true,
             onDrop,
@@ -42,10 +42,10 @@ export function useBoard() {
 
         window.addEventListener('resize', board.resize)
 
-            
+
         socket.emit("match-create")
         setTimeout(() => {
-            if(playerColor) return
+            if (playerColor) return
 
             playerColor = "white"
             stockfish = true
@@ -54,24 +54,24 @@ export function useBoard() {
             board.position("start")
             chess.reset()
         }, 10000) // In case that no match is found
+
+        socket.on("match-move", (move) => {
+            chess.move(move)
+            board.position(chess.fen())
+        })
+
+        socket.on("match-found", ({ opponent, color }) => {
+            toast.success("Match found", { description: `Match with ${opponent}・You are ${color}!` })
+            board.orientation(color)
+            playerColor = color
+            board.position("start")
+            chess.reset()
+        })
     })
 
     onUnmounted(() => {
         window.removeEventListener('resize', board?.resize)
         socket.disconnect()
-    })
-
-    socket.on("match-move", (move) => {
-        chess.move(move)
-        board.position(chess.fen())
-    })
-
-    socket.on("match-found", ({ opponent, color }) => {
-        toast.success("Match found", { description: `Match with ${opponent}・You are ${color}!`})
-        board.orientation(color)
-        playerColor = color
-        board.position("start")
-        chess.reset()
     })
 
     function isPromotion(source, target) {
@@ -128,7 +128,7 @@ export function useBoard() {
             chess.move({ from: source, to: target })
         }
 
-        if(stockfish)
+        if (stockfish)
             setTimeout(makeStockfishMove, 100)
     }
 
