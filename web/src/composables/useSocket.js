@@ -17,16 +17,30 @@ export function useSocket(name) {
 
             gameState.playerColor = color
             gameState.opponentName = opponent
-            gameState.matchStart = true
+            gameState.matchActive = true
 
             playSound("Notify")
             toast.success("Match found", { description: `Match with ${opponent}・You are ${color}!` })
         })
 
         socket.on("match-abandon", () => {
+
+            if(!gameState.matchActive) return
+
             playSound("Notify")
-            toast.success(`${gameState.opponentName} lost by abandoment`)
+            toast.success(`${gameState.opponentName} lost by abandoment!`)
         })
+
+        socket.on("opponent-cheated", () => {
+            if(!gameState.matchActive) return
+
+            playSound("Notify")
+            toast.warning(`${gameState.opponentName} has been kicked for being suspected for cheating.!`)
+        })
+
+        socket.on("invalid-move", () => {
+            toast.error(`You have been kicked for being suspected for cheating!`)
+        }) 
     }
 
     return socket

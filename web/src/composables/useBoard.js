@@ -29,6 +29,7 @@ window.jQuery = $
 export function useBoard() {
 
     const socket = useSocket(null)
+    window.socket = socket
 
     onMounted(async () => {
         await import("@chrisoakman/chessboardjs/dist/chessboard-1.0.0.min.js")
@@ -53,20 +54,18 @@ export function useBoard() {
         //     playerColor = "white"
         //     stockfish = true
         //     socket.disconnect()
-        //     console.log("Against stockfish lil bro")
         //     board.position("start")
         //     chess.reset()
         // }, 10000) // In case that no match is found
 
         socket.on("match-move", (move) => {
-            console.log(chess.fen())
             const moveMade = chess.move(move)
             checkMoveStatus(moveMade)
             board.position(chess.fen())
         })
 
-        watch(() => gameState.matchStart, (matchStart) => {
-            if (!matchStart) return;
+        watch(() => gameState.matchActive, (matchStart) => {
+            if (!matchStart) return
 
             chess.reset()
             board.position(chess.fen())
@@ -91,14 +90,11 @@ export function useBoard() {
             } else {
                 toast.success(`${gameState.playerName} won by checkmate!`)
             }
-
-            gameState.matchStart = false
-            return
+            return gameState.matchActive = false
         }
 
         if (chess.inCheck()) {
             playSound("Check")
-            return
         }
 
         if (chess.isDraw()) {
@@ -113,7 +109,7 @@ export function useBoard() {
             else if (chess.isDrawByFiftyMoves())
                 toast.info("Game over by 50 moves!")
 
-            gameState.matchStart = false
+            return gameState.matchActive = false
         }
     }
     function checkMoveStatus(move) {
@@ -151,7 +147,7 @@ export function useBoard() {
         const moves = chess.moves({ square: source, verbose: true })
         const isValid = moves.some(m => m.to === target)
 
-        if (!isValid)
+        if (!isValid || !gameState.matchActive)
             return 'snapback'
 
         if (
@@ -188,8 +184,6 @@ export function useBoard() {
 
     async function makeStockfishMove() {
         const move = await getBestMove(chess.fen(), 1)
-
-        console.log(move)
 
         const moveMade = chess.move({
             from: move.slice(0, 2),

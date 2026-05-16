@@ -5,6 +5,7 @@
     "serve": "node index.js"
   },
   "dependencies": {
+    "chess.js": "^1.4.0",
     "express": "^5.2.1",
     "socket.io": "^4.8.3"
   },

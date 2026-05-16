@@ -5,7 +5,10 @@ export default ({ socket, availablePlayers, matches }) => {
 
     if(!matchID || !matches.has(matchID)) return
     
-    socket.to(matchID).emit("match-abandon")
+    if(!socket.data.kickedForCheating)
+        socket.to(matchID).emit("match-abandon")
+    else 
+        socket.to(matchID).emit("opponent-cheated")
 
     matches.delete(matchID)
 

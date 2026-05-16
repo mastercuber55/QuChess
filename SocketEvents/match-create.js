@@ -1,4 +1,5 @@
 import crypto from "crypto"
+import { DEFAULT_POSITION } from "chess.js"
 
 export default ({ availablePlayers, matches }) => {
 
@@ -28,7 +29,9 @@ export default ({ availablePlayers, matches }) => {
 	black.join(matchID)
 
 	matches.set(matchID, {
-		white: white.data, black: black.data,
+		white: white.data, 
+		black: black.data,
+		fen: DEFAULT_POSITION
 	})
 
 	white.emit("match-found", {

@@ -6,5 +6,5 @@ export default reactive({
     playerName: "Anonymous",
     playerELO: "400",
     playerColor: null,
-    matchStart: false
+    matchActive: false
 })

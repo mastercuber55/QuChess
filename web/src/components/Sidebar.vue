@@ -91,7 +91,7 @@ const items = [
       <Item class="bg-accent p-1.5 flex-1 flex items-center overflow-hidden max-h-11 group-data-[state=collapsed]:bg-transparent group-data-[state=collapsed]:-mx-1 transition-all">
         <Avatar class="shrink-0">
           <AvatarImage :src="`https://api.dicebear.com/9.x/shapes/svg?seed=${gameState.playerName}`"></AvatarImage>
-          <AvatarFallback>{{ gameState.playerName?.slice(0, 2) || 'Anonymous' }}</AvatarFallback>
+          <AvatarFallback>{{ gameState.playerName?.slice(0, 2) || '??' }}</AvatarFallback>
         </Avatar>
         <div class="flex flex-col leading-tight group-data-[state=collapsed]:hidden">
           <span class="font-semibold whitespace-nowrap">{{ gameState.playerName }}</span>
