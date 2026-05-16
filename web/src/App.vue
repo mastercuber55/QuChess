@@ -30,17 +30,31 @@ import ChatWindow from "@/components/ChatWindow.vue"
 import { Toaster } from './components/ui/sonner'
 import { useSocket } from "@/composables/useSocket"
 import { toast } from 'vue-sonner'
+import { ref, computed, watch } from "vue"
+import gameState from './states/game'
+import { useSFX } from './composables/useSFX'
 
 let name = sessionStorage.getItem('name');
 while (!name) name = prompt("What is your name??")
 sessionStorage.setItem('name', name)
+
 const socket = useSocket(name)
-const { chess, undoMove } = useBoard()
+const { playSound } = useSFX()
+const { chess, getFenAtIndex, board, moveIndex } = useBoard()
 
 async function copyPGN() {
     await navigator.clipboard.writeText(chess.pgn())
     toast.success("Game PGN copied!")
 }
+
+watch(moveIndex, () => {
+  if(!gameState.matchActive || moveIndex.value == chess.moveNumber()) return
+  const fen = getFenAtIndex(moveIndex.value)
+  if(!fen) return 
+  
+  board.value.position(fen)
+  playSound("Move")
+})
 
 </script>
 
@@ -64,7 +78,7 @@ async function copyPGN() {
               <ChatWindow />
               <div class="flex justify-between gap-2">
 
-                <Button size="icon" variant="secondary">
+                <Button size="icon" variant="secondary" @click="moveIndex = Math.max(0, moveIndex - 1)">
                   <ChevronLeft />
                 </Button>
 
@@ -80,7 +94,7 @@ async function copyPGN() {
                   <Flag /> Resign
                 </Button>
 
-                <Button size="icon" variant="secondary">
+                <Button size="icon" variant="secondary" @click="moveIndex = Math.min(chess.moveNumber(), moveIndex + 1)">
                   <ChevronRight />
                 </Button>
 

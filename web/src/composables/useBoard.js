@@ -13,7 +13,10 @@ const { playSound } = useSFX()
 const pendingMove = ref(null)
 const { showPromotionMenu } = usePromotionMenu()
 
-let board = null
+// Temprorarily modifiable by outside files until next move
+const moveIndex = ref(0)
+
+let board = ref(null)
 let stockfish = null
 
 const chess = new Chess()
@@ -48,17 +51,17 @@ export function useBoard() {
     onMounted(async () => {
         await import("@chrisoakman/chessboardjs/dist/chessboard-1.0.0.min.js")
 
-        board = Chessboard('board', {
+        board.value = Chessboard('board', {
             draggable: true,
             onDrop,
             onDragStart,
             onSnapbackEnd: () => highlights.removeAll("legal-move"),
-            onSnapEnd: () => board.position(chess.fen()),
+            onSnapEnd: () => board.value.position(chess.fen()),
             position: 'start',
             pieceTheme: '/pieces/{piece}.png'
         })
 
-        window.addEventListener('resize', board.resize)
+        window.addEventListener('resize', board.value.resize)
 
 
         socket.emit("match-create")
@@ -68,22 +71,22 @@ export function useBoard() {
         //     playerColor = "white"
         //     stockfish = true
         //     socket.disconnect()
-        //     board.position("start")
+        //     board.value.position("start")
         //     chess.reset()
         // }, 10000) // In case that no match is found
 
         socket.on("match-move", (move) => {
             const moveMade = chess.move(move)
             checkMoveStatus(moveMade)
-            board.position(chess.fen())
+            board.value.position(chess.fen())
         })
 
         watch(() => gameState.matchActive, (matchStart) => {
             if (!matchStart) return
 
             chess.reset()
-            board.position(chess.fen())
-            board.orientation(gameState.playerColor)
+            board.value.position(chess.fen())
+            board.value.orientation(gameState.playerColor)
 
             chess.header(
                 "Event", "QyuChess Casual Match",
@@ -103,7 +106,7 @@ export function useBoard() {
     })
 
     onUnmounted(() => {
-        window.removeEventListener('resize', board?.resize)
+        window.removeEventListener('resize', board.value?.resize)
         socket.off("match-move")
         socket.off("match-found")
         socket.disconnect()
@@ -155,6 +158,7 @@ export function useBoard() {
             playSound("Move")
         }
         showLastMove(move)
+        moveIndex.value = chess.moveNumber()
         checkGameStatus()
     }
 
@@ -177,7 +181,7 @@ export function useBoard() {
         const move = chess.move({ ...pendingMove.value, promotion: toPiece })
         checkMoveStatus(move)
         pendingMove.value = null
-        board.position(chess.fen())
+        board.value.position(chess.fen())
     }
 
     function onDrop(source, target, piece, newPos, oldPos, orientation) {
@@ -207,7 +211,7 @@ export function useBoard() {
             }, promote)
 
             pendingMove.value = { from: source, to: target }
-            board.position(chess.fen(), false)
+            board.value.position(chess.fen(), false)
         } else {
             socket.emit("match-move", { from: source, to: target })
             const move = chess.move({ from: source, to: target })
@@ -230,7 +234,7 @@ export function useBoard() {
 
         checkMoveStatus(moveMade)
 
-        board.position(chess.fen())
+        board.value.position(chess.fen())
     }
 
     function onDragStart(source, piece, position, orientation) {
@@ -247,10 +251,14 @@ export function useBoard() {
         })
     }
 
-    function undoMove() {
-        chess.undo()
-        board.position(chess.fen())
+    function getFenAtIndex(index) {
+        const history = chess.history({ verbose: true })
+        
+        if(index == history.length) 
+            return history[index - 1].after
+        else
+            return history[index].before
     }
 
-    return { chess, undoMove }
+    return { chess, board, getFenAtIndex, moveIndex }
 }
