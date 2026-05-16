@@ -1,6 +1,6 @@
 import $ from "jquery"
 import { onMounted, onUnmounted, ref, watch } from 'vue'
-import { Chess } from 'chess.js'
+import { Chess, DEFAULT_POSITION } from 'chess.js'
 import { usePromotionMenu } from "./usePromotionMenu.js"
 import { useSocket } from "./useSocket.js"
 import { getBestMove } from "./useStockfish.js"
@@ -14,7 +14,7 @@ const pendingMove = ref(null)
 const { showPromotionMenu } = usePromotionMenu()
 
 // Temprorarily modifiable by outside files until next move
-const moveIndex = ref(0)
+const moveIndex = ref(1)
 
 let board = ref(null)
 let stockfish = null
@@ -158,7 +158,7 @@ export function useBoard() {
             playSound("Move")
         }
         showLastMove(move)
-        moveIndex.value = chess.moveNumber()
+        moveIndex.value = chess.history().length - 1
         checkGameStatus()
     }
 
@@ -253,11 +253,10 @@ export function useBoard() {
 
     function getFenAtIndex(index) {
         const history = chess.history({ verbose: true })
-        
-        if(index == history.length) 
-            return history[index - 1].after
-        else
-            return history[index].before
+
+        if(index == -1) return DEFAULT_POSITION;
+
+        return history[index].after
     }
 
     return { chess, board, getFenAtIndex, moveIndex }

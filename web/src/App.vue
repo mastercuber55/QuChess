@@ -48,13 +48,22 @@ async function copyPGN() {
 }
 
 watch(moveIndex, () => {
-  if(!gameState.matchActive || moveIndex.value == chess.moveNumber()) return
+  if(!gameState.matchActive) return
+
   const fen = getFenAtIndex(moveIndex.value)
   if(!fen) return 
   
   board.value.position(fen)
   playSound("Move")
 })
+
+function incrMoveNumber() {
+  moveIndex.value = Math.min(moveIndex.value + 1, chess.history().length - 1)
+}
+
+function decrMoveNumber() {
+  moveIndex.value = Math.max(moveIndex.value - 1, -1)
+}
 
 </script>
 
@@ -78,7 +87,7 @@ watch(moveIndex, () => {
               <ChatWindow />
               <div class="flex justify-between gap-2">
 
-                <Button size="icon" variant="secondary" @click="moveIndex = Math.max(0, moveIndex - 1)">
+                <Button size="icon" variant="secondary" @click="decrMoveNumber">
                   <ChevronLeft />
                 </Button>
 
@@ -94,7 +103,7 @@ watch(moveIndex, () => {
                   <Flag /> Resign
                 </Button>
 
-                <Button size="icon" variant="secondary" @click="moveIndex = Math.min(chess.moveNumber(), moveIndex + 1)">
+                <Button size="icon" variant="secondary" @click="incrMoveNumber">
                   <ChevronRight />
                 </Button>
 
