@@ -15,8 +15,10 @@ import {
 
 import {
   Flag,
-  RotateCcw,
+  ChevronLeft,
+  ChevronRight,
   Handshake,
+  Copy
 } from "lucide-vue-next"
 
 import "@chrisoakman/chessboardjs/dist/chessboard-1.0.0.min.css"
@@ -27,12 +29,18 @@ import { Input } from './components/ui/input'
 import ChatWindow from "@/components/ChatWindow.vue"
 import { Toaster } from './components/ui/sonner'
 import { useSocket } from "@/composables/useSocket"
+import { toast } from 'vue-sonner'
 
 let name = sessionStorage.getItem('name');
 while (!name) name = prompt("What is your name??")
 sessionStorage.setItem('name', name)
 const socket = useSocket(name)
 const { chess, undoMove } = useBoard()
+
+async function copyPGN() {
+    await navigator.clipboard.writeText(chess.pgn())
+    toast.success("Game PGN copied!")
+}
 
 </script>
 
@@ -44,7 +52,7 @@ const { chess, undoMove } = useBoard()
       <Toaster theme="dark" position="top-center" />
       <PromotionMenu />
       <div class="flex flex-col flex-1 h-full">
-        <Navbar/>
+        <Navbar />
         <main class="flex-1 p-2">
           <div class="flex flex-col lg:flex-row w-full gap-2.5 h-full">
             <Card class="p-2">
@@ -53,23 +61,29 @@ const { chess, undoMove } = useBoard()
               </div>
             </Card>
             <Card class="flex-1 p-4">
-              <ChatWindow/>
-              <div class="flex flex-row justify-between gap-2">
+              <ChatWindow />
+              <div class="flex justify-between gap-2">
 
-                <Button @click="() => { undoMove(); undoMove(); }" class="flex-1" variant="secondary">
-                  <RotateCcw />
-                  Undo
+                <Button size="icon" variant="secondary">
+                  <ChevronLeft />
                 </Button>
 
-                <Button class="flex-1" variant="secondary">
-                  <Handshake />
-                  Draw
+                <Button size="icon" variant="secondary" @click="copyPGN">
+                  <Copy />
                 </Button>
 
-                <Button class="flex-1" variant="destructive">
-                  <Flag />
-                  Resign
+                <Button size="icon" variant="secondary" class="flex-1">
+                  <Handshake /> Draw
                 </Button>
+
+                <Button size="icon" variant="destructive" class="flex-1">
+                  <Flag /> Resign
+                </Button>
+
+                <Button size="icon" variant="secondary">
+                  <ChevronRight />
+                </Button>
+
               </div>
             </Card>
           </div>
@@ -80,9 +94,17 @@ const { chess, undoMove } = useBoard()
 </template>
 
 <style scoped>
-:deep(.highlight) {
+:deep(.highlight-legal-move) {
   background-image: radial-gradient(rgba(0, 0, 0, 0.2) 18%, transparent 18%) !important;
   background-repeat: no-repeat;
   background-position: center;
+}
+
+:deep(.highlight-move-from) {
+  background-color: rgba(155, 115, 50, 0.79);
+}
+
+:deep(.highlight-move-to) {
+  background-color: rgba(225, 179, 80, 0.741);
 }
 </style>

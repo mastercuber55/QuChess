@@ -12,6 +12,7 @@ import { Filter } from 'bad-words'
 import gameState from '@/states/game';
 
 const filter = new Filter();
+filter.removeWords("hell", "damn", "god", "pawn")
 
 const censor = ref(true)
 const socket = useSocket(null)
@@ -81,8 +82,14 @@ function sendMessage() {
         </CardContent>
 
         <CardFooter class="flex gap-2">
-            <Input v-model="input"/>
-            <Button @click="sendMessage()">></Button>
+            <Input
+                v-model="input"
+                @keydown.enter="sendMessage"
+            />
+            
+            <Button @click="sendMessage">
+                >
+            </Button>
         </CardFooter>
     </Card>
 </template>

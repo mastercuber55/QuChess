@@ -19,8 +19,22 @@ let stockfish = null
 const chess = new Chess()
 
 const highlights = {
-    add: (square) => $('#board .square-' + square).addClass('highlight'),
-    removeAll: () => $('#board .square-55d63').removeClass('highlight')
+    variants: ["legal-move", "move-from", "move-to"],
+    add(square, variant) {
+        if (!this.variants.includes(variant))
+            console.warn("Invalid highlight variant passed for adding", variant)
+        $(`#board .square-${square}`).addClass(`highlight-${variant}`)
+    },
+    remove(square, variant) {
+        if (!this.variants.includes(variant))
+            console.warn("Invalid highlight variant passed for removing", variant)
+        $(`#board .square-${square}`).removeClass(`highlight-${variant}`)
+    },
+    removeAll(variant) {
+        if (!this.variants.includes(variant))
+            console.warn("Invalid highlight variant passed for removing all", variant)
+        $('#board .square-55d63').removeClass(`highlight-${variant}`)
+    }
 }
 
 window.$ = $
@@ -38,7 +52,7 @@ export function useBoard() {
             draggable: true,
             onDrop,
             onDragStart,
-            onSnapbackEnd: highlights.removeAll,
+            onSnapbackEnd: () => highlights.removeAll("legal-move"),
             onSnapEnd: () => board.position(chess.fen()),
             position: 'start',
             pieceTheme: '/pieces/{piece}.png'
@@ -70,6 +84,21 @@ export function useBoard() {
             chess.reset()
             board.position(chess.fen())
             board.orientation(gameState.playerColor)
+
+            chess.header(
+                "Event", "QyuChess Casual Match",
+                "Site", window.location.origin,
+                "Date", new Date().toISOString().slice(0, 10).replaceAll("-", "."),
+                "Round", "-",
+                "White", gameState.playerColor === "white"
+                    ? gameState.playerName
+                    : gameState.opponentName,
+                "Black", gameState.playerColor === "black"
+                    ? gameState.playerName
+                    : gameState.opponentName,
+                "TimeControl", "Unlimited",
+                "Variant", "Standard"
+            )
         })
     })
 
@@ -80,6 +109,13 @@ export function useBoard() {
         socket.disconnect()
     })
 
+    function showLastMove(move) {
+        highlights.removeAll("move-from")
+        highlights.removeAll("move-to")
+
+        highlights.add(move.from, "move-from")
+        highlights.add(move.to, "move-to")
+    }
     function checkGameStatus() {
         if (chess.isCheckmate()) {
             playSound("Checkmate")
@@ -118,6 +154,7 @@ export function useBoard() {
         } else {
             playSound("Move")
         }
+        showLastMove(move)
         checkGameStatus()
     }
 
@@ -157,7 +194,7 @@ export function useBoard() {
             return "snapback"
         }
 
-        highlights.removeAll()
+        highlights.removeAll("legal-move")
 
         const willPromote = isPromotion(source, target)
 
@@ -204,9 +241,9 @@ export function useBoard() {
 
         if (moves.length === 0) return false
 
-        highlights.removeAll()
+        highlights.removeAll("legal-move")
         moves.forEach((move) => {
-            highlights.add(move.to)
+            highlights.add(move.to, "legal-move")
         })
     }
 
