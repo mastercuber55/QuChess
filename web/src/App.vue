@@ -56,7 +56,7 @@ async function copyPGN() {
         <main class="flex-1 p-2">
           <div class="flex flex-col lg:flex-row w-full gap-2.5 h-full">
             <Card class="p-2">
-              <div class="overflow-hidden rounded-[calc(var(--radius)-0.25rem)]">
+              <div class="overflow-hidden rounded-[calc(var(--radius)-0.25rem)] touch-none">
                 <div id="board" class="-m-0.5 aspect-square w-[min(100vw-2rem,calc(100vh-5rem))]"></div>
               </div>
             </Card>
