@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
@@ -9,39 +9,43 @@ import { CardContent, CardAction } from './ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useSocket } from '@/composables/useSocket';
 import { Filter } from 'bad-words'
+import gameState from '@/states/game';
 
 const filter = new Filter();
 
-const opponentName = ref("")
-const selfName = ref("")
 const censor = ref(true)
 const socket = useSocket(null)
 const input = ref("")
 
+const rawMessages = ref([])
+
 const messages = computed(() =>
-  censor.value ? censoredMessages.value : originalMessages.value
+    rawMessages.value.map(message => ({
+        ...message,
+        content: censor.value
+            ? filter.clean(message.content)
+            : message.content
+    }))
 )
 
-const originalMessages = ref([])
-const censoredMessages = ref([])
+function onMessage(content) {
+    rawMessages.value.push({ sender: gameState.opponentName, content })
+}
 
-socket.on("match-found", ({ opponent }) => {
-    opponentName.value = opponent
-    selfName.value = socket.data.name
+onMounted(() => {
+    socket.on("match-message", onMessage)
 })
 
-socket.on("match-message", content => {
-    originalMessages.value.push({ sender: opponentName.value, content })
-    censoredMessages.value.push({ sender: opponentName.value, content: filter.clean(content) })
+onUnmounted(() => {
+    socket.off("match-message", onMessage)
 })
 
 function sendMessage() {
     if(input.value.trim() == "") 
         return
     socket.emit("match-message", input.value)
-    originalMessages.value.push({ sender: selfName.value, content: input.value })
-    censoredMessages.value.push({ sender: selfName.value, content: filter.clean(input.value) })
-    input.value = null
+    rawMessages.value.push({ sender: gameState.playerName, content: input.value })
+    input.value = ""
 }
 </script>
 
@@ -51,7 +55,7 @@ function sendMessage() {
         <CardHeader class="border-b pb-3 flex items-center justify-between">
             <CardTitle>
                 <span class="font-semibold">
-                    Message ・ {{ opponentName }}
+                    Message ・ {{ gameState.opponentName }}
                 </span>
             </CardTitle>
             <CardAction class="flex gap-1">
@@ -64,8 +68,8 @@ function sendMessage() {
             <ScrollArea class="h-full w-full">
                 <div class="p-4 space-y-2 flex flex-col">
                     <div v-for="(message, index) in messages" :key="index" class="flex"
-                        :class="message.sender === opponentName ? 'justify-start' : 'justify-end'">
-                        <span class="px-3 py-2 rounded-2xl max-w-[70%] wrap-break-word" :class="message.sender === opponentName
+                        :class="message.sender === gameState.opponentName ? 'justify-start' : 'justify-end'">
+                        <span class="px-3 py-2 rounded-2xl max-w-[70%] wrap-break-word" :class="message.sender === gameState.opponentName
                             ? 'bg-accent text-foreground'
                             : 'bg-primary text-primary-foreground'">
                             {{ message.content }}

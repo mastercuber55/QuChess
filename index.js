@@ -16,8 +16,7 @@ const availablePlayers = new Map()
 const matches = new Map()
 
 io.on("connection", async(socket) => {
-    
-    console.log("bro joined")
+
     availablePlayers.set(socket.id, socket)
 
 	const eventFiles = fs.readdirSync("./SocketEvents")

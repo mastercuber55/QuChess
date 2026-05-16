@@ -6,6 +6,7 @@ import {
 } from '@/components/ui/navigation-menu'
 
 import { SidebarTrigger } from './ui/sidebar';
+import gameState from '@/states/game';
 
 </script>
 
@@ -15,7 +16,7 @@ import { SidebarTrigger } from './ui/sidebar';
         <NavigationMenu>
             <NavigationMenuList>
                 <NavigationMenuItem class="px-3 text-sm font-semibold opacity-50 select-none">
-                    Dwip [400] vrs Cube Nerd [300]
+                    {{ gameState.opponentName }} ⚔️ {{ gameState.playerName }}
                 </NavigationMenuItem>
             </NavigationMenuList>
         </NavigationMenu>

@@ -2,7 +2,11 @@ import crypto from "crypto"
 
 export default ({ availablePlayers, matches }) => {
 
+	console.log("Match create requested")
+
 	if (availablePlayers.size < 2) return
+
+	console.log("Creating match")
 
 	const p1 = availablePlayers.values().next().value
 	availablePlayers.delete(p1.id)

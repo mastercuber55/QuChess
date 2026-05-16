@@ -9,10 +9,8 @@ import {
 import { Button } from './ui/button/index.js';
 
 import { usePromotionMenu } from "@/composables/usePromotionMenu.js"
-import { useBoard } from "@/composables/useBoard.js"
 
-const { open, x, y, hidePromotionMenu } = usePromotionMenu()
-const { promote } = useBoard()
+const { open, x, y, hidePromotionMenu, promoteFunc } = usePromotionMenu()
 
 const options = [
     { label: 'Queen', icon: '♛', value: "q" },
@@ -36,7 +34,7 @@ const options = [
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <Button variant="secondary" v-for="option in options" @click="() => {
-                    promote(option.value)
+                    promoteFunc(option.value)
                     hidePromotionMenu()
                 }" class="flex items-center gap-2">
                     <span class="text-lg">{{ option.icon }}</span>

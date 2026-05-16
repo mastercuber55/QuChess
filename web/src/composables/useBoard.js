@@ -1,17 +1,20 @@
 import $ from "jquery"
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { Chess } from 'chess.js'
 import { usePromotionMenu } from "./usePromotionMenu.js"
 import { useSocket } from "./useSocket.js"
-import { toast } from "vue-sonner"
 import { getBestMove } from "./useStockfish.js"
+import { useSFX } from "./useSFX.js"
 
+import gameState from "@/states/game.js"
+import { toast } from "vue-sonner"
+
+const { playSound } = useSFX()
 const pendingMove = ref(null)
 const { showPromotionMenu } = usePromotionMenu()
 
 let board = null
 let stockfish = null
-let playerColor = null
 
 const chess = new Chess()
 
@@ -44,36 +47,83 @@ export function useBoard() {
 
 
         socket.emit("match-create")
-        setTimeout(() => {
-            if (playerColor) return
+        // setTimeout(() => {
+        //     if (playerColor) return
 
-            playerColor = "white"
-            stockfish = true
-            socket.disconnect()
-            console.log("Against stockfish lil bro")
-            board.position("start")
-            chess.reset()
-        }, 10000) // In case that no match is found
+        //     playerColor = "white"
+        //     stockfish = true
+        //     socket.disconnect()
+        //     console.log("Against stockfish lil bro")
+        //     board.position("start")
+        //     chess.reset()
+        // }, 10000) // In case that no match is found
 
         socket.on("match-move", (move) => {
-            chess.move(move)
+            console.log(chess.fen())
+            const moveMade = chess.move(move)
+            checkMoveStatus(moveMade)
             board.position(chess.fen())
         })
 
-        socket.on("match-found", ({ opponent, color }) => {
-            toast.success("Match found", { description: `Match with ${opponent}・You are ${color}!` })
-            board.orientation(color)
-            playerColor = color
+        watch(() => gameState.matchStart, (matchStart) => {
+            if (!matchStart) return;
 
-            board.position("start")
             chess.reset()
+            board.position(chess.fen())
+            board.orientation(gameState.playerColor)
         })
     })
 
     onUnmounted(() => {
         window.removeEventListener('resize', board?.resize)
+        socket.off("match-move")
+        socket.off("match-found")
         socket.disconnect()
     })
+
+    function checkGameStatus() {
+        if (chess.isCheckmate()) {
+            playSound("Checkmate")
+            const loser = chess.turn() === 'w' ? 'white' : 'black'
+
+            if (gameState.playerColor === loser) {
+                toast.error(`${gameState.opponentName} won by checkmate!`)
+            } else {
+                toast.success(`${gameState.playerName} won by checkmate!`)
+            }
+
+            gameState.matchStart = false
+            return
+        }
+
+        if (chess.inCheck()) {
+            playSound("Check")
+            return
+        }
+
+        if (chess.isDraw()) {
+            playSound("Draw")
+
+            if (chess.isStalemate())
+                toast.info("Game over by stalemate!")
+            else if (chess.isInsufficientMaterial())
+                toast.info("Game over by insufficient material!")
+            else if (chess.isThreefoldRepetition())
+                toast.info("Game over by three fold repetition!")
+            else if (chess.isDrawByFiftyMoves())
+                toast.info("Game over by 50 moves!")
+
+            gameState.matchStart = false
+        }
+    }
+    function checkMoveStatus(move) {
+        if (move.isCapture()) {
+            playSound("Capture")
+        } else {
+            playSound("Move")
+        }
+        checkGameStatus()
+    }
 
     function isPromotion(source, target) {
         const piece = chess.get(source)
@@ -91,7 +141,8 @@ export function useBoard() {
 
     function promote(toPiece) {
         socket.emit("match-move", { ...pendingMove.value, promotion: toPiece })
-        chess.move({ ...pendingMove.value, promotion: toPiece })
+        const move = chess.move({ ...pendingMove.value, promotion: toPiece })
+        checkMoveStatus(move)
         pendingMove.value = null
         board.position(chess.fen())
     }
@@ -104,8 +155,8 @@ export function useBoard() {
             return 'snapback'
 
         if (
-            (playerColor === "white" && chess.turn() !== "w") ||
-            (playerColor === "black" && chess.turn() !== "b")
+            (gameState.playerColor === "white" && chess.turn() !== "w") ||
+            (gameState.playerColor === "black" && chess.turn() !== "b")
         ) {
             return "snapback"
         }
@@ -126,7 +177,9 @@ export function useBoard() {
             board.position(chess.fen(), false)
         } else {
             socket.emit("match-move", { from: source, to: target })
-            chess.move({ from: source, to: target })
+            const move = chess.move({ from: source, to: target })
+            checkMoveStatus(move)
+
         }
 
         if (stockfish)
@@ -138,11 +191,13 @@ export function useBoard() {
 
         console.log(move)
 
-        chess.move({
+        const moveMade = chess.move({
             from: move.slice(0, 2),
             to: move.slice(2, 4),
             promotion: move[4] || "q"
         })
+
+        checkMoveStatus(moveMade)
 
         board.position(chess.fen())
     }
@@ -166,5 +221,5 @@ export function useBoard() {
         board.position(chess.fen())
     }
 
-    return { chess, undoMove, promote }
+    return { chess, undoMove }
 }
