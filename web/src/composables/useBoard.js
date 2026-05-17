@@ -2,8 +2,7 @@ import $ from "jquery"
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { Chess, DEFAULT_POSITION } from 'chess.js'
 import { usePromotionMenu } from "./usePromotionMenu.js"
-import { useSocket } from "./useSocket.js"
-import { getBestMove } from "./useStockfish.js"
+import { useSocket, switchToMockSocket } from "./useSocket.js"
 import { useSFX } from "./useSFX.js"
 
 import gameState from "@/states/game.js"
@@ -17,7 +16,6 @@ const { showPromotionMenu } = usePromotionMenu()
 const moveIndex = ref(1)
 
 let board = ref(null)
-let stockfish = null
 
 const chess = new Chess()
 
@@ -46,7 +44,6 @@ window.jQuery = $
 export function useBoard() {
 
     const socket = useSocket(null)
-    window.socket = socket
 
     onMounted(async () => {
         await import("@chrisoakman/chessboardjs/dist/chessboard-1.0.0.min.js")
@@ -63,17 +60,13 @@ export function useBoard() {
 
         window.addEventListener('resize', board.value.resize)
 
-
         socket.emit("match-create")
-        // setTimeout(() => {
-        //     if (playerColor) return
 
-        //     playerColor = "white"
-        //     stockfish = true
-        //     socket.disconnect()
-        //     board.value.position("start")
-        //     chess.reset()
-        // }, 10000) // In case that no match is found
+        setTimeout(() => {
+            if(gameState.matchActive) return;
+            switchToMockSocket()
+            socket.emit("match-create")
+        }, 10000)
 
         socket.on("match-move", (move) => {
             const moveMade = chess.move(move)
@@ -213,28 +206,10 @@ export function useBoard() {
             pendingMove.value = { from: source, to: target }
             board.value.position(chess.fen(), false)
         } else {
-            socket.emit("match-move", { from: source, to: target })
             const move = chess.move({ from: source, to: target })
+            socket.emit("match-move", { from: source, to: target })
             checkMoveStatus(move)
-
         }
-
-        if (stockfish)
-            setTimeout(makeStockfishMove, 100)
-    }
-
-    async function makeStockfishMove() {
-        const move = await getBestMove(chess.fen(), 1)
-
-        const moveMade = chess.move({
-            from: move.slice(0, 2),
-            to: move.slice(2, 4),
-            promotion: move[4] || "q"
-        })
-
-        checkMoveStatus(moveMade)
-
-        board.value.position(chess.fen())
     }
 
     function onDragStart(source, piece, position, orientation) {

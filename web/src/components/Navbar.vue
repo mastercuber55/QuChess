@@ -7,6 +7,17 @@ import {
 
 import { SidebarTrigger } from './ui/sidebar';
 import gameState from '@/states/game';
+import { computed } from 'vue';
+
+const emojis = ["♚","♔"]
+
+const playerEmoji = computed(() => 
+    gameState.playerColor == "black" ? emojis[0] : emojis[1]
+)
+
+const opponentEmoji = computed(() => 
+    gameState.playerColor != "black" ? emojis[0] : emojis[1]
+)
 
 </script>
 
@@ -16,7 +27,7 @@ import gameState from '@/states/game';
         <NavigationMenu>
             <NavigationMenuList>
                 <NavigationMenuItem class="px-3 text-sm font-semibold opacity-50 select-none">
-                    {{ gameState.opponentName }} ⚔️ {{ gameState.playerName }}
+                    {{ opponentEmoji }} {{ gameState.opponentName }} ⚔️ {{ gameState.playerName }} {{ playerEmoji }}
                 </NavigationMenuItem>
             </NavigationMenuList>
         </NavigationMenu>

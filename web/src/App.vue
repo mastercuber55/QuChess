@@ -18,7 +18,14 @@ import {
   ChevronLeft,
   ChevronRight,
   Handshake,
-  Copy
+  Copy,
+  Rotate3dIcon,
+  SwitchCamera,
+  FlipHorizontal,
+  FilePen,
+  FlipVertical,
+  FlipVertical2,
+  FlipVerticalIcon
 } from "lucide-vue-next"
 
 import "@chrisoakman/chessboardjs/dist/chessboard-1.0.0.min.css"
@@ -80,7 +87,7 @@ function decrMoveNumber() {
           <div class="flex flex-col lg:flex-row w-full gap-2.5 h-full">
             <Card class="p-2">
               <div class="overflow-hidden rounded-[calc(var(--radius)-0.25rem)] touch-none">
-                <div id="board" class="-m-0.5 aspect-square w-[min(100vw-2rem,calc(100vh-5rem))]"></div>
+                <div id="board" class="-m-px aspect-square w-[min(100dvw-2rem,calc(100vh-6rem))]"></div>
               </div>
             </Card>
             <Card class="flex-1 p-4">
@@ -101,6 +108,10 @@ function decrMoveNumber() {
 
                 <Button size="icon" variant="destructive" class="flex-1">
                   <Flag /> Resign
+                </Button>
+
+                <Button size="icon" variant="secondary" @click="() => board.flip()">
+                  <FlipVerticalIcon/>
                 </Button>
 
                 <Button size="icon" variant="secondary" @click="incrMoveNumber">

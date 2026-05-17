@@ -37,12 +37,10 @@ export default ({ availablePlayers, matches }) => {
 	white.emit("match-found", {
 		opponent: black.data.name,
 		color: "white",
-		matchID
 	})
 
 	black.emit("match-found", {
 		opponent: white.data.name,
 		color: "black",
-		matchID
 	})
 }

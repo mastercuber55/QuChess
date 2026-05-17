@@ -2,8 +2,34 @@ import { io } from "socket.io-client"
 import gameState from "@/states/game"
 import { toast } from "vue-sonner"
 import { useSFX } from "./useSFX"
+import { useMockSocket } from "./useMockSocket"
 
 let socket
+
+const listenersRegistry = {}
+
+const proxy = {
+    on (event, callback) {
+
+        if (!listenersRegistry[event]) {
+            listenersRegistry[event] = []
+        }
+        listenersRegistry[event].push(callback)
+
+        socket.on(event, callback)
+    },
+    off(event, callback) {
+
+        if (listenersRegistry[event]) {
+            listenersRegistry[event] = listenersRegistry[event].filter(cb => cb !== callback)
+        }
+
+        socket.off(event, callback)
+    },
+    emit(event, data) {
+        socket.emit(event, data)
+    },
+}
 
 export function useSocket(name) {
     if(!socket) {
@@ -13,7 +39,7 @@ export function useSocket(name) {
 
         const { playSound } = useSFX()
 
-        socket.on("match-found", ({ opponent, color }) => {
+        proxy.on("match-found", ({ opponent, color }) => {
 
             gameState.playerColor = color
             gameState.opponentName = opponent
@@ -23,7 +49,7 @@ export function useSocket(name) {
             toast.success("Match found", { description: `Match with ${opponent}・You are ${color}!` })
         })
 
-        socket.on("match-abandon", () => {
+        proxy.on("match-abandon", () => {
 
             if(!gameState.matchActive) return
 
@@ -31,17 +57,30 @@ export function useSocket(name) {
             toast.success(`${gameState.opponentName} lost by abandoment!`)
         })
 
-        socket.on("opponent-cheated", () => {
+        proxy.on("opponent-cheated", () => {
             if(!gameState.matchActive) return
 
             playSound("Notify")
             toast.warning(`${gameState.opponentName} has been kicked for being suspected for cheating.!`)
         })
 
-        socket.on("invalid-move", () => {
+        proxy.on("invalid-move", () => {
             toast.error(`You have been kicked for being suspected for cheating!`)
         }) 
     }
 
-    return socket
+    return proxy
+}
+
+export function switchToMockSocket() {
+
+    const mock = useMockSocket()
+    socket.disconnect()
+    socket = mock.socketClient
+    
+    Object.keys(listenersRegistry).forEach((event) => {
+        listenersRegistry[event].forEach((callback) => {
+            socket.on(event, callback)
+        })
+    })
 }

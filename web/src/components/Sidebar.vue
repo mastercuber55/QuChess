@@ -5,7 +5,9 @@ import {
   Users,
   Tv,
   LayoutDashboard,
-  Castle
+  Castle,
+  Home, LineChart,
+  Compass
 } from 'lucide-vue-next'
 import {
   Sidebar,
@@ -18,42 +20,21 @@ import {
 } from '@/components/ui/sidebar'
 
 import { Item } from "@/components/ui/item"
-import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar'; 
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 
 import gameState from '@/states/game';
 
 // Menu items.
 const items = [
-  {
-    title: 'Play',
-    url: '#',
-    icon: Swords,
-  },
-  {
-    title: 'History',
-    url: '#',
-    icon: History,
-  },
-  {
-    title: 'Leaderboard',
-    url: '#',
-    icon: LayoutDashboard, // Global rankings
-  },
-  {
-    title: 'Watch',
-    url: '#',
-    icon: Tv, // Spectating high-rated games
-  },
-  {
-    title: 'Friends',
-    url: '#',
-    icon: Users, // Social and friend lists
-  },
-  {
-    title: 'Settings',
-    url: '#',
-    icon: Settings, // Board themes, pieces, and sounds
-  },
+  { title: 'Home', url: '#', icon: Home, },
+  { title: 'Play', url: '#', icon: Swords, },
+  { title: 'Explorer', url: '#', icon: Compass, },
+  { title: 'Analysis', url: '#', icon: LineChart, },
+  { title: 'History', url: '#', icon: History, },
+  { title: 'Leaderboard', url: '#', icon: LayoutDashboard, },
+  { title: 'Watch', url: '#', icon: Tv, },
+  { title: 'Friends', url: '#', icon: Users, },
+  { title: 'Settings', url: '#', icon: Settings, },
 ]
 </script>
 
@@ -63,9 +44,9 @@ const items = [
       <SidebarMenu>
         <SidebarMenuItem>
           <div class="flex items-center overflow-hidden mx-3 my-2 gap-1">
-           <Castle/>
+            <Castle />
             <span class="group-data-[state=collapsed]:hidden font-semibold ">
-              QuChess
+              QyuChess
             </span>
           </div>
         </SidebarMenuItem>
@@ -88,7 +69,8 @@ const items = [
       </SidebarGroup>
     </SidebarContent>
     <SidebarFooter class="m-1  flex">
-      <Item class="bg-accent p-1.5 flex-1 flex items-center overflow-hidden max-h-11 group-data-[state=collapsed]:bg-transparent group-data-[state=collapsed]:-mx-1 transition-all">
+      <Item
+        class="bg-accent p-1.5 flex-1 flex items-center overflow-hidden max-h-11 group-data-[state=collapsed]:bg-transparent group-data-[state=collapsed]:-mx-1 transition-all">
         <Avatar class="shrink-0">
           <AvatarImage :src="`https://api.dicebear.com/9.x/shapes/svg?seed=${gameState.playerName}`"></AvatarImage>
           <AvatarFallback>{{ gameState.playerName?.slice(0, 2) || '??' }}</AvatarFallback>
@@ -97,7 +79,7 @@ const items = [
           <span class="font-semibold whitespace-nowrap">{{ gameState.playerName }}</span>
           <small class="text-sidebar-foreground/60">🏆 {{ gameState.playerELO }}</small>
         </div>
-        <Settings class="flex ml-auto group-data-[state=collapsed]:hidden"/>
+        <Settings class="flex ml-auto group-data-[state=collapsed]:hidden" />
       </Item>
     </SidebarFooter>
   </Sidebar>
