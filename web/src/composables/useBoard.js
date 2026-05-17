@@ -66,7 +66,7 @@ export function useBoard() {
             if(gameState.matchActive) return;
             switchToMockSocket()
             socket.emit("match-create")
-        }, 10000)
+        }, 1000)
 
         socket.on("match-move", (move) => {
             const moveMade = chess.move(move)

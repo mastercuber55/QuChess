@@ -1,9 +1,8 @@
 let engine;
 let resolveQueue = [];
-
 let pvLines = {};
 
-function getBestMove(fen, depth = 1, multiPV = 1) {
+function getBestMove(fen, depth = 1, multiPV = 3) {
     if (!engine) {
         engine = new Worker("/stockfish.js");
 
@@ -11,7 +10,7 @@ function getBestMove(fen, depth = 1, multiPV = 1) {
             const line = e.data;
 
             if (line.includes("multipv")) {
-                const match = line.match(/multipv (\d+).* pv ([a-h1-8]+)/);
+                const match = line.match(/multipv (\d+).* pv ([a-h][1-8][a-h][1-8][qrbn]?)/);
                 if (match) {
                     const index = match[1];
                     const move = match[2];
